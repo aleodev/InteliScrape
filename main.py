@@ -3,7 +3,7 @@ import time
 import httpx
 import json
 from constants import subreddits
-from utils import flatten_comments, group_comments
+from utils import group_comments
 
 
 def scraper():
@@ -77,7 +77,6 @@ def scrape_comments(data):
     print(f'Fetching posts... \n')
     for post in data:
         # Fetch comments
-        # print(f'Fetching post {post["id"]}... \n')
         response = httpx.get(f'{post["url"]}.json')
 
         if response.status_code != 200:
@@ -86,37 +85,14 @@ def scrape_comments(data):
         # Parse comments
         json_data = response.json()
         parsed_data = json_data[1]["data"]["children"]
-        
-        # flat_data = list(flatten_comments(parsed_data))
         grouped_data = list(group_comments(parsed_data))
-
-        # with open(f"export/flattened_comments.json", "w", encoding="utf-8") as f:
-        #     json.dump(flat_data, f, indent=4, ensure_ascii=False)
         
         with open(f"export/{post["subreddit"]}/{post["id"]}.json", "w", encoding="utf-8") as f:
             json.dump(grouped_data, f, indent=4, ensure_ascii=False)
 
 
-
-
-def test():
-
-    response = httpx.get(
-        "https://www.reddit.com/r/stocks/.json",
-        params={"limit": "5"}
-    )
-    
-    json_data = response.json()
-    
-    if response.status_code != 200:
-        raise Exception("Failed to fetch!")
-    
-    with open(f"test.json", "w", encoding="utf-8") as f:
-                json.dump(json_data, f, indent=4, ensure_ascii=False)
-
 def main():
     scraper()
-    # test()
 
 
 main()
