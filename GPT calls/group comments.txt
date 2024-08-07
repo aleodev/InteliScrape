@@ -1,0 +1,88 @@
+For example the below call:
+
+https://www.reddit.com/r/reactjs/comments/506gca/what_backend_and_db_are_you_using_with_react/.json
+would give you nested structure. Looks like the following:
+[
+  {
+    "kind": "t1",
+    "data": {
+      "body": "hello"
+    }
+  },
+  {
+    "kind": "t1",
+    "data": {
+      "body": "heldaelo!",
+      "replies": {
+        "data": {
+          "children": [
+            {
+              "data": {
+                "body": "YESSIR"
+              }
+            },
+            {
+              "data": {
+                "body": "YESdaeeaSIR",
+                "replies": {
+                  "data": {
+                    "children": [
+                      {
+                        "data": {
+                          "body": "caee"
+                        }
+                      },
+                      {
+                        "data": {
+                          "body": "rqeqtgg",
+                          "replies": {}
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]
+
+In this json file, there's an array of objects.
+    Precisely, the data object will almost always have a "body" key with an a string in it which corresponds to a comment. Inside of that data object will also have a
+"replies" key which sometimes will have a object in it. This replies key corresponds to the replies of the comment. When the "replies" key does have an object in it, that means the
+comment does indeed have replies, and it will have a data object inside of it if it does have replies. That data object will have a "children" key with an array of objects. This array
+of objects will be an array of the data object I mentioned previously which again are just comments with potential replies and so on. This can recurvivly go on forever as long as
+the comments has replies. What I would like you to do is to return to me a way to somewhat flatten this structure and give me a an array of objects with the comments and their corresponding replies,
+and replies to those replies, but in a better format such as what I will send below as a json.
+
+[
+  {
+    "comment": "this is comment 1",
+    "replies": [
+      {
+        "comment": "this is reply 1 which is a reply to comment 1",
+        "replies": [
+          {
+            "comment": "this is reply 3, which is a reply to comment 1 that is a reply to comment 1"
+          },
+          {
+            "comment": "this is reply 4, which is a reply to comment 1 that is a reply to comment 1"
+          }
+        ]
+      },
+      {
+        "comment": "this is reply 2 which is a reply to comment 1"
+      }
+    ]
+  }
+]
+
+I want it structured this way instead so I can use it for better readability.
+
+
+key with a in this json file can have a "replies" key with an object, which can have a "data" key thas has
+     an object with a "children" array inside with a "data" key, that can again have a "replies" key and so on. Not that its possible that this can go recursive structure can go on forever. I want to know how to flatten this
+        recursive structure and only retrieve the "body" key as a list in python.
