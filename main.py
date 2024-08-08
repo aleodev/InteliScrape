@@ -4,9 +4,21 @@ import httpx
 import json
 from constants import subreddits
 from utils import group_comments
+import configparser
+
+config = configparser.ConfigParser()
+
 
 
 def scraper():
+    
+    # Setup config
+    if not os.path.exists('config.ini'):
+        config['post_scraper'] = {'postLimit': 100, 'postRate': 1, 'category': "hot"}
+        config.write(open('config.ini', 'w'))
+    else:
+         config.read('config.ini')
+         
     # Capped at last 500 posts per sub for now
     # Anything past 3 times per 100, the 4th is blank for some reason???
     # Should probably make scheduler
@@ -23,15 +35,15 @@ def scraper():
 
 def scrape_posts(subName):
     # Params
-    postLimit = 100
-    postRate = 1
+    postLimit = config["scraper"]['post_limit']
+    postRate = config["scraper"]['post_rate']
+    category = config["scraper"]['category']
     # Data
     dataset = []
     # Grab chunk past ID
     after_post_id = None
 
     # Retrieval point for any subreddit
-    category = "hot"
     url = f"https://www.reddit.com/r/{subName}/{category}.json"
 
     for _ in range(postRate):
