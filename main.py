@@ -1,109 +1,62 @@
-import os
-import time
-import httpx
-import json
-from constants import subreddits
-from utils import group_comments
-import configparser
-
-config = configparser.ConfigParser()
+from reddit_scraper import run as run_reddit
+from vantage_scraper import run as run_vantage
+import curses
 
 
-
-def scraper():
-    
-    # Setup config
-    if not os.path.exists('config.ini'):
-        config['post_scraper'] = {'postLimit': 100, 'postRate': 1, 'category': "hot"}
-        config.write(open('config.ini', 'w'))
-    else:
-         config.read('config.ini')
-         
-    # Capped at last 500 posts per sub for now
-    # Anything past 3 times per 100, the 4th is blank for some reason???
-    # Should probably make scheduler
-
-    for sub in subreddits:
-        print(f"Scraping ${sub} \n")
-
-        # Scrape posts
-        post_data = scrape_posts(sub)
-
-        # Scrape comments using post data
-        scrape_comments(post_data)
+def run_option_function(func):
+    # Temporarily exit curses mode to run the function and print its output
+    curses.endwin()  # End curses mode to allow printing to the terminal
+    func()  # Call the external function
+    input("Press Enter to return to the menu...")  # Wait for user input
 
 
-def scrape_posts(subName):
-    # Params
-    post_limit = int(config["scraper"]['post_limit'])
-    post_rate = int(config["scraper"]['post_rate'])
-    category = config["scraper"]['category']
-    # Data
-    dataset = []
-    # Grab chunk past ID
-    after_post_id = None
+def print_menu(stdscr, selected_row_idx):
+    menu = ["REDDIT SCRAPER", "VANTAGE SCRAPER", "EXIT"]
 
-    # Retrieval point for any subreddit
-    url = f"https://www.reddit.com/r/{subName}/{category}.json"
+    stdscr.clear()
+    stdscr.addstr(0, 0, "=" * 50)
+    stdscr.addstr(1, 0, "         the scrape lord himself fr         ")
+    stdscr.addstr(2, 0, "=" * 50)
 
-    for _ in range(post_rate):
-        # Fetch chunk
-        params = {"limit": post_limit, "t": "year", "after": after_post_id}  # time units
-        response = httpx.get(url, params=params)
-        print(f'Fetching chunk {_} ... \n')
+    for idx, row in enumerate(menu):
+        x = 10
+        y = 4 + idx
+        if idx == selected_row_idx:
+            stdscr.attron(curses.A_REVERSE)
+            stdscr.addstr(y, x, row)
+            stdscr.attroff(curses.A_REVERSE)
+        else:
+            stdscr.addstr(y, x, row)
 
-        if response.status_code != 200:
-            raise Exception("Failed to fetch!")
-        
-        # Parse & filter chunk
-        json_data = response.json()
-        parsed = [rec["data"] for rec in json_data["data"]["children"] if rec["data"].get("num_comments") not in [0, None]]
-        
-        keys = [
-            "selftext",
-            "id",
-            "url",
-            "subreddit",
-            "title",
-        ]
-        filtered = [{key: item[key] for key in keys} for item in parsed]
-
-        # Add chunk to dataset
-        dataset.extend(filtered)
-
-        # Set ID to grab next chunk
-        after_post_id = json_data["data"]["after"]
-        time.sleep(0.5)
-
-    # Export list of sub links
-    filename = f"export/{subName}/index.json"
-    os.makedirs(os.path.dirname(filename), exist_ok=True)    
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(dataset, f, indent=4, ensure_ascii=False)
-
-    return dataset
+    stdscr.addstr(y + 2, 0, "=" * 50)
+    stdscr.refresh()
 
 
-def scrape_comments(data):
-    print(f'Fetching posts... \n')
-    for post in data:
-        # Fetch comments
-        response = httpx.get(f'{post["url"]}.json')
+def main(stdscr):
+    curses.curs_set(0)  # Hide the cursor
+    stdscr.keypad(True)  # Enable keypad mode to capture special keys
+    current_row = 0
+    print_menu(stdscr, current_row)
 
-        if response.status_code != 200:
-            raise Exception("Failed to fetch!")
+    while True:
+        key = stdscr.getch()
 
-        # Parse comments
-        json_data = response.json()
-        parsed_data = json_data[1]["data"]["children"]
-        grouped_data = list(group_comments(parsed_data))
-        
-        with open(f"export/{post["subreddit"]}/{post["id"]}.json", "w", encoding="utf-8") as f:
-            json.dump(grouped_data, f, indent=4, ensure_ascii=False)
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < 2:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            if current_row == 0:
+                run_option_function(run_reddit)
+                # No need to call curses.wrapper here; the function is handled
+            elif current_row == 1:
+                run_option_function(run_vantage)
+                # No need to call curses.wrapper here; the function is handled
+            elif current_row == 2:
+                break  # Exit the menu loop and end the program
+
+        print_menu(stdscr, current_row)
 
 
-def main():
-    scraper()
-
-
-main()
+if __name__ == "__main__":
+    curses.wrapper(main)
