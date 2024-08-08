@@ -14,12 +14,12 @@ def print_menu(stdscr, selected_row_idx):
     menu = ["REDDIT SCRAPER", "VANTAGE SCRAPER", "EXIT"]
 
     stdscr.clear()
-    stdscr.addstr(0, 0, "=" * 50)
-    stdscr.addstr(1, 0, "         the scrape lord himself fr         ")
-    stdscr.addstr(2, 0, "=" * 50)
+    stdscr.addstr(0, 0, "=" * 30)
+    stdscr.addstr(1, 0, "         Scraper         ")
+    stdscr.addstr(2, 0, "=" * 30)
 
     for idx, row in enumerate(menu):
-        x = 10
+        x = 7
         y = 4 + idx
         if idx == selected_row_idx:
             stdscr.attron(curses.A_REVERSE)
@@ -28,7 +28,7 @@ def print_menu(stdscr, selected_row_idx):
         else:
             stdscr.addstr(y, x, row)
 
-    stdscr.addstr(y + 2, 0, "=" * 50)
+    stdscr.addstr(y + 2, 0, "=" * 30)
     stdscr.refresh()
 
 
