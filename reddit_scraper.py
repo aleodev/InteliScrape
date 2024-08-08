@@ -17,13 +17,15 @@ def run():
     # Should probably make scheduler
 
     for sub in SUBS:
-        print(f"Scraping r/{sub} \n")
+        print(f"Scraping r/{sub} ... \n")
 
         # Scrape posts
         post_data = scrape_posts(sub)
 
         # Scrape comments using post data
         scrape_comments(post_data)
+        
+        print("Scraping finished!")
 
 
 def scrape_posts(subName):
@@ -91,6 +93,7 @@ def scrape_comments(data):
         parsed_data = json_data[1]["data"]["children"]
         grouped_data = list(group_comments(parsed_data))
         
+        # Export comment groups
         filename = os.path.join(ROOT_DIR, f"export/reddit/{post["subreddit"]}/{post["id"]}.json")
         os.makedirs(os.path.dirname(filename), exist_ok=True)   
         with open(filename, "w", encoding="utf-8") as f:
