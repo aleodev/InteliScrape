@@ -35,8 +35,8 @@ def scraper():
 
 def scrape_posts(subName):
     # Params
-    postLimit = config["scraper"]['post_limit']
-    postRate = config["scraper"]['post_rate']
+    post_limit = int(config["scraper"]['post_limit'])
+    post_rate = int(config["scraper"]['post_rate'])
     category = config["scraper"]['category']
     # Data
     dataset = []
@@ -46,11 +46,10 @@ def scrape_posts(subName):
     # Retrieval point for any subreddit
     url = f"https://www.reddit.com/r/{subName}/{category}.json"
 
-    for _ in range(postRate):
+    for _ in range(post_rate):
         # Fetch chunk
-        params = {"limit": postLimit, "t": "year", "after": after_post_id}  # time units
+        params = {"limit": post_limit, "t": "year", "after": after_post_id}  # time units
         response = httpx.get(url, params=params)
-
         print(f'Fetching chunk {_} ... \n')
 
         if response.status_code != 200:
