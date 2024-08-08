@@ -2,7 +2,7 @@ import os
 import time
 import httpx
 import json
-from definitions import SUBS, CONFIG_PATH
+from definitions import SUBS, CONFIG_PATH, ROOT_DIR
 from utils import group_comments, setup_config
 import configparser
 config = configparser.ConfigParser()
@@ -17,7 +17,7 @@ def run():
     # Should probably make scheduler
 
     for sub in SUBS:
-        print(f"Scraping ${sub} \n")
+        print(f"Scraping r/{sub} \n")
 
         # Scrape posts
         post_data = scrape_posts(sub)
@@ -69,7 +69,7 @@ def scrape_posts(subName):
         time.sleep(0.5)
 
     # Export list of sub links
-    filename = f"export/reddit/{subName}/index.json"
+    filename = os.path.join(ROOT_DIR, f"export/reddit/{subName}/index.json")
     os.makedirs(os.path.dirname(filename), exist_ok=True)    
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(dataset, f, indent=4, ensure_ascii=False)
@@ -91,6 +91,8 @@ def scrape_comments(data):
         parsed_data = json_data[1]["data"]["children"]
         grouped_data = list(group_comments(parsed_data))
         
-        with open(f"export/reddit/{post["subreddit"]}/{post["id"]}.json", "w", encoding="utf-8") as f:
+        filename = os.path.join(ROOT_DIR, f"export/reddit/{post["subreddit"]}/{post["id"]}.json")
+        os.makedirs(os.path.dirname(filename), exist_ok=True)   
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(grouped_data, f, indent=4, ensure_ascii=False)
 
