@@ -14,9 +14,9 @@ def run():
         "vantage_scraper",
         {
             "overview": "True",
-            "income": "True",
-            "balance": "True",
-            "cashflow": "True",
+            "income_statement": "True",
+            "balance_sheet": "True",
+            "cash_flow": "True",
             "earnings": "True",
         },
     )
