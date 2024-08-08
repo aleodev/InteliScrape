@@ -22,3 +22,4 @@ SUBS = [
     # "valueinvesting",
     # "bogleheads",
 ]
+VANTAGE_API_KEY = "YWY8OH3ZNYPI2Y7X"

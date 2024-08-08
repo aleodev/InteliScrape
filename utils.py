@@ -1,3 +1,8 @@
+import configparser
+import os
+from definitions import CONFIG_PATH
+
+
 def flatten_comments(data):
     dataset = []
 
@@ -43,3 +48,24 @@ def group_comments(comments):
         return [process_comment(comment) for comment in comments]
 
     return process_comments(comments)
+
+
+def setup_config(section, default_config):
+    # Setup config
+    config = configparser.ConfigParser()
+
+    # Config doesnt exist
+    if not os.path.exists(CONFIG_PATH):
+        config[section] = default_config
+        with open(CONFIG_PATH, "w") as f:
+            config.write(f)
+
+    else:
+        config.read(CONFIG_PATH)
+        # Config exists without section
+        if not config.has_section(section):
+            config.add_section(section)
+            for key, value in default_config.items():
+                config.set(section, key, value)
+            with open(CONFIG_PATH, "w") as f:
+                config.write(f)

@@ -3,20 +3,15 @@ import time
 import httpx
 import json
 from definitions import SUBS, CONFIG_PATH
-from utils import group_comments
+from utils import group_comments, setup_config
 import configparser
-
 config = configparser.ConfigParser()
 
 def run():
+    # Config
+    setup_config("reddit_scraper", {"post_limit": "100", "post_rate": "1", "category": "hot"})
+    config.read(CONFIG_PATH)
     
-    # Setup config
-    if not os.path.exists(CONFIG_PATH.strip()):
-        config['reddit_scraper'] = {'post_limit': 100, 'post_rate': 1, 'category': "hot"}
-        config.write(open(CONFIG_PATH, 'w'))
-    else:
-        config.read(CONFIG_PATH)
-         
     # Capped at last 500 posts per sub for now
     # Anything past 3 times per 100, the 4th is blank for some reason???
     # Should probably make scheduler
@@ -33,9 +28,9 @@ def run():
 
 def scrape_posts(subName):
     # Params
-    post_limit = int(config["reddit_scraper"]['post_limit'])
-    post_rate = int(config["reddit_scraper"]['post_rate'])
-    category = config["reddit_scraper"]['category']
+    post_limit = int(config.get("reddit_scraper",'post_limit'))
+    post_rate = int(config.get("reddit_scraper",'post_rate'))
+    category = config.get("reddit_scraper",'category')
     # Data
     dataset = []
     # Grab chunk past ID
@@ -74,7 +69,7 @@ def scrape_posts(subName):
         time.sleep(0.5)
 
     # Export list of sub links
-    filename = f"export/{subName}/index.json"
+    filename = f"export/reddit/{subName}/index.json"
     os.makedirs(os.path.dirname(filename), exist_ok=True)    
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(dataset, f, indent=4, ensure_ascii=False)
@@ -96,6 +91,6 @@ def scrape_comments(data):
         parsed_data = json_data[1]["data"]["children"]
         grouped_data = list(group_comments(parsed_data))
         
-        with open(f"export/{post["subreddit"]}/{post["id"]}.json", "w", encoding="utf-8") as f:
+        with open(f"export/reddit/{post["subreddit"]}/{post["id"]}.json", "w", encoding="utf-8") as f:
             json.dump(grouped_data, f, indent=4, ensure_ascii=False)
 
